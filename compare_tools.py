@@ -32,7 +32,7 @@ def mae(real,prediction):
     mean_absolute_error=sum_difference/float(instances)
     return mean_absolute_error
 
-
+#Gets the Normalized Root Mean Squared Error and Mean Absolute Error adding as control a random prediction
 def compare_random(real,prediction,times=100):
     __check_array_errors__(real,prediction)
     instances=len(real)
@@ -65,24 +65,53 @@ def compare_random(real,prediction,times=100):
     results[pred_rand_key][mae_key]/=float(times)
     return results
 
-def compare_files(file1,file2,delim_whitespace=True,header=None,times=100):
-    data_set_1=pd.read_csv(file1,header=header,delim_whitespace=delim_whitespace)
-    data_set_2=pd.read_csv(file2,header=header,delim_whitespace=delim_whitespace)
+#Compares the predicted values from two files looking for just at the predicted values
+def compare_predictions(file_marked,file_real,file_prediction,delim_whitespace=True,header=None,times=100):
+    data_original=pd.read_csv(file_marked,header=header,delim_whitespace=delim_whitespace)
+    data_set_1=pd.read_csv(file_real,header=header,delim_whitespace=delim_whitespace)
+    data_set_2=pd.read_csv(file_prediction,header=header,delim_whitespace=delim_whitespace)
+    __check_pdmatrix_errors_(data_original,data_set_1)
     __check_pdmatrix_errors_(data_set_1,data_set_2)
     rows=data_set_1.values.shape[0]
     cols=data_set_1.values.shape[1]
-    prediction_1=[]
-    prediction_2=[]
+    real=[]
+    prediction=[]
     for r in range(rows):
         for c in range(cols):
-            if data_set_1.values[r,c]!=data_set_2.values[r,c]:
-                #We store the values when they are different
-                prediction_1.append(data_set_1.values[r,c])
-                prediction_2.append(data_set_2.values[r,c])
+            #We store the values when the value is marked as missing
+            if data_original.values[r,c]<0:
+                real.append(data_set_1.values[r,c])
+                prediction.append(data_set_2.values[r,c])
+    print "Comparison of results"
+    results=compare_random(real,prediction,times)
+    print results
 
-    print "Results"
-    errors=compare_random(prediction_1,prediction_2,times)
-    print errors
+def random_fill(filename_in,filename_out,header=None,delim_whitespace=True, float_format='%.5f',random_seed=None):
+    if random_seed==None:
+        rn.seed()
+    else:
+        rn.seed(random_seed)
+    data=pd.read_csv(filename_in,header=header,delim_whitespace=delim_whitespace)
+    #Fill missing values with random
+    processed_data=[]
+    rows=data.values.shape[0]
+    cols=data.values.shape[1]
+    dict=None
+    for r in range(rows):
+        dict={}
+        for c in range(cols):
+            if data.values[r,c]>0:
+                dict[c]=data.values[r,c]
+            else:
+                dict[c]=rn.random()
+        processed_data.append(dict)
+
+    filled_data=pd.DataFrame(processed_data)
+    if delim_whitespace:
+        filled_data.to_csv(filename_out," ",header=header, float_format=float_format,index=False)
+    else:
+        filled_data.to_csv(filename_out,",",header=header, float_format=float_format,index=False)
+
 
 def __check_array_errors__(real,prediction):
     if len(real)!=len(prediction):
