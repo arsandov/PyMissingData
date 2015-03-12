@@ -12,7 +12,7 @@ class bayesian_fill:
         self.__pvalparam__=pvalparam
         self.__current_pval__=pvalparam
         self.__indegree__=indegree
-        self.__basepval__=0.05
+        self.__max_retry__=20
     def fill_missing_data(self,filename_in,filename_out,header=None,float_format='%.5f',delim_whitespace=True):
         #You can set a seed to get always the same random numbers sequence
         if self.random_seed==None:
@@ -49,10 +49,10 @@ class bayesian_fill:
                     skel=learner.lg_constraint_estimatestruct(processed_data, pvalparam=self.__current_pval__, bins=self.bins, indegree=self.__indegree__)
                     break
                 except AssertionError:
-                    self.__current_pval__+=self.__basepval__
+                    self.__current_pval__+=(1-self.__pvalparam__)/float(self.__max_retry__)
                     print 'There is a cycle, the new pval is '+str(self.__current_pval__)
             if self.__current_pval__>1:
-                raise IOError("The columns in the input file create cycles, try setting a pval closer to 1 ")
+                raise IOError("The columns in the input file create cycles, try setting a pval closer to 1 or trying another algorithm")
             #print json.dumps(skel.E, indent=2)#Prints the edges between nodes in json format
 
             #Fits the best parameters for current structure
