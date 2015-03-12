@@ -51,7 +51,8 @@ class bayesian_fill:
                 except AssertionError:
                     self.__current_pval__+=self.__basepval__
                     print 'There is a cycle, the new pval is '+str(self.__current_pval__)
-
+            if self.__current_pval__>1:
+                raise IOError("The columns in the input file create cycles, try setting a pval closer to 1 ")
             #print json.dumps(skel.E, indent=2)#Prints the edges between nodes in json format
 
             #Fits the best parameters for current structure
