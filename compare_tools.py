@@ -112,6 +112,32 @@ def random_fill(filename_in,filename_out,header=None,delim_whitespace=True, floa
     else:
         filled_data.to_csv(filename_out,",",header=header, float_format=float_format,index=False)
 
+def random_delete(filename_in,filename_out,header=None,delim_whitespace=True, float_format='%.5f',random_seed=None,probability=0.15):
+    if random_seed==None:
+        rn.seed()
+    else:
+        rn.seed(random_seed)
+    data=pd.read_csv(filename_in,header=header,delim_whitespace=delim_whitespace)
+    #Fill missing values with random
+    processed_data=[]
+    rows=data.values.shape[0]
+    cols=data.values.shape[1]
+    dict=None
+    for r in range(rows):
+        dict={}
+        for c in range(cols):
+            random_number=rn.random()
+            if random_number<=probability:
+                dict[c]=-1
+            else:
+                dict[c]=data.values[r,c]
+        processed_data.append(dict)
+
+    filled_data=pd.DataFrame(processed_data)
+    if delim_whitespace:
+        filled_data.to_csv(filename_out," ",header=header, float_format=float_format,index=False)
+    else:
+        filled_data.to_csv(filename_out,",",header=header, float_format=float_format,index=False)
 
 def __check_array_errors__(real,prediction):
     if len(real)!=len(prediction):

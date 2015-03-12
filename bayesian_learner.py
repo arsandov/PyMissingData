@@ -10,7 +10,9 @@ class bayesian_fill:
         self.min_iterations=min_iterations
         self.bins=bins
         self.__pvalparam__=pvalparam
+        self.__current_pval__=pvalparam
         self.__indegree__=indegree
+        self.__basepval__=0.05
     def fill_missing_data(self,filename_in,filename_out,header=None,float_format='%.5f',delim_whitespace=True):
         #You can set a seed to get always the same random numbers sequence
         if self.random_seed==None:
@@ -33,14 +35,23 @@ class bayesian_fill:
                     dict[c]=rn.random()
             processed_data.append(dict)
 
-        #Iterative approach
+        #Main loop to find the best network
         best_likelihood=[]
         best_lgbn=None
         for i in range(self.max_iterations):
             print "Iteration: "+str(i)
+
             #Fits a structure for the data
             learner = PGMLearner()
-            skel=learner.lg_constraint_estimatestruct(processed_data, pvalparam=self.__pvalparam__, bins=self.bins, indegree=self.__indegree__)
+            self.__current_pval__=self.__pvalparam__
+            while self.__current_pval__<1:
+                try:
+                    skel=learner.lg_constraint_estimatestruct(processed_data, pvalparam=self.__current_pval__, bins=self.bins, indegree=self.__indegree__)
+                    break
+                except AssertionError:
+                    self.__current_pval__+=self.__basepval__
+                    print 'There is a cycle, the new pval is '+str(self.__current_pval__)
+
             #print json.dumps(skel.E, indent=2)#Prints the edges between nodes in json format
 
             #Fits the best parameters for current structure
@@ -61,8 +72,7 @@ class bayesian_fill:
                 best_likelihood=current_likelihood
                 best_lgbn=lgbn
                 print "Better bayesian network found"
-
-            #We fill missing data using our best bayesian networks
+            #We fill missing data using the current bayesian network
             dict=None
             for r in range(rows):
                 dict={}
@@ -78,9 +88,27 @@ class bayesian_fill:
                     dict=lgbn.randomsample(1,dict)[0]
                     for c in missing_cols:
                         processed_data[r][c]=dict[c]
+
         #We store the best network
         self.__best_likelihood__=best_likelihood
         self.__best_lgbn__=best_lgbn
+        #We fill missing data using our best bayesian network
+        dict=None
+        for r in range(rows):
+            dict={}
+            missing_cols=[]
+            #We check each column to recover all the data available for that row
+            for c in range(cols):
+                if data.values[r,c]>0:
+                    dict[c]=data.values[r,c]
+                else:
+                    missing_cols.append(c)
+            #We get a random sample from the bayesian network given all the available data and store it in the processed data
+            if len(missing_cols)>0:
+                dict=best_lgbn.randomsample(1,dict)[0]
+                for c in missing_cols:
+                    processed_data[r][c]=dict[c]
+
         #We write in a file the data with missing values filled
         filled_data=pd.DataFrame(processed_data)
         if delim_whitespace:
