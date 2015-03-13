@@ -1674,22 +1674,6 @@ div#notebook {
 <body>
   <div tabindex="-1" id="notebook" class="border-box-sizing">
     <div class="container" id="notebook-container">
-
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">
-In&nbsp;[1]:
-</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
-<span class="n">css_file</span> <span class="o">=</span> <span class="s">&#39;stylesheets/stylesheet.css&#39;</span>
-<span class="n">HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-</pre></div>
-
-</div>
-</div>
 </div>
 
 <div class="output_wrapper">
@@ -1859,33 +1843,6 @@ div.output_subarea { /* remove margin in front of output */
 </div>
 
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">
-In&nbsp;[2]:
-</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="o">%</span><span class="k">load_ext</span> <span class="n">autoreload</span>
-<span class="o">%</span><span class="k">autoreload</span> <span class="mi">2</span>
-<span class="o">%</span><span class="k">reload_ext</span> <span class="n">autoreload</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">
-In&nbsp;[3]:
-</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="n">picture</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;images/IACS_logo.jpg&#39;</span><span class="p">)</span>
-<span class="n">picture</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
-</pre></div>
 
 </div>
 </div>
@@ -1898,11 +1855,7 @@ In&nbsp;[3]:
 In&nbsp;[4]:
 </div>
 <div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="n">picture</span>
-</pre></div>
 
-</div>
 </div>
 </div>
 
@@ -5177,38 +5130,6 @@ AooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/9k=
 </div>
 </div>
 
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">
-In&nbsp;[5]:
-</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">PyMissingData</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_text output_pyerr">
-<pre>
-<span class="ansired">---------------------------------------------------------------------------</span>
-<span class="ansired">ImportError</span>                               Traceback (most recent call last)
-<span class="ansigreen">&lt;ipython-input-5-37dc42425544&gt;</span> in <span class="ansicyan">&lt;module&gt;</span><span class="ansiblue">()</span>
-<span class="ansigreen">----&gt; 1</span><span class="ansiyellow"> </span><span class="ansigreen">import</span> PyMissingData<span class="ansiyellow"></span>
-
-<span class="ansired">ImportError</span>: No module named PyMissingData</pre>
-</div>
-</div>
-
-</div>
-</div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered">
@@ -5216,7 +5137,15 @@ In&nbsp;[5]:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The library can be installed through pip as: <br> <code> pip install PyMissingData </code> <br> Also you can download it from https://github.com/arsandov/PyMissingData. The main idea is that any user can run it in its own database but can also add new features through the github system. For a quick guide on how to use github visit https://guides.github.com/activities/hello-world/. <br><br> <strong>Requirements</strong> <br><br> This library has been created and used with python 2.7. It doesn't have compatibility for python 3 yet. <br><br> It has the following dependencies to other packages: * <a href="https://github.com/pydata/pandas">pandas</a> * <a href="https://github.com/numpy/numpy">numpy</a> * <a href="https://github.com/scipy/scipy">scipy</a> * <a href="http://pythonhosted.org//libpgm/">libpgm</a> (included because we used a modified version) <br><br> We recommend using the distribution of Python called <a href="http://continuum.io/downloads">Anaconda</a>, frequently used for science, math, engineering and data analysis. Which includes all these packages and more.</p>
+<p>The library can be installed through pip as: <br> <code> pip install PyMissingData </code> <br> Also you can download it from https://github.com/arsandov/PyMissingData. The main idea is that any user can run it in its own database but can also add new features through the github system. For a quick guide on how to use github visit https://guides.github.com/activities/hello-world/. <br><br> <strong>Requirements</strong> <br><br> This library has been created and used with python 2.7. It doesn't have compatibility for python 3 yet. <br><br> It has the following dependencies to other packages: 
+<ul><li> <a href="https://github.com/pydata/pandas">pandas</a></li>
+<li> <a href="https://github.com/numpy/numpy">numpy</a></li>
+<li><a href="https://github.com/scipy/scipy">scipy</a></li> 
+<li><a href="http://pythonhosted.org//libpgm/">libpgm</a> (included because we used a modified version)
+</li>
+</ul>
+<br><br> 
+We recommend using the distribution of Python called <a href="http://continuum.io/downloads">Anaconda</a>, frequently used for science, math, engineering and data analysis. Which includes all these packages and more.</p>
 </div>
 </div>
 </div>
@@ -5360,7 +5289,7 @@ delim_whitespace: The character which separetes a value from another is a whites
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The read file follows the same requirements as the file above and can be found <a href="https://raw.githubusercontent.com/arsandov/PyMissingData/master/examples/example2/Training_Features.txt">here</a> <br> <code> import bayesian_learner import compare_tools filename_input=&quot;Training_Features.txt&quot; filename_removed=&quot;tf_removed.txt&quot; filename_output=&quot;tf_filled.txt&quot; compare_tools.random_delete(filename_input,filename_removed) #This delete data randomly form the original source bf= bayesian_learner.bayesian_fill(min_iterations=3,max_iterations=80,pvalparam=0.3) bf.fill_missing_data(filename_removed,filename_output) bf.json_network() #prints the network in json format compare_tools.compare_predictions(filename_removed,filename_input,filename_output) #Calculates the MAE and NRMSE </code> <b>Output:</b> <code> Iteration: 0 Iteration: 1 Iteration: 2 Iteration: 3 Iteration: 4 Better bayesian network found ... ... Iteration: 37 Better bayesian network found Iteration: 38 ... Iteration: 52 There is a cycle, the new pval is 0.335 There is a cycle, the new pval is 0.37 ... Prints the network in Json ... Comparison of results {'real-prediction': {'mae': 0.05022275484304244, 'nrmse': 0.09962577574706931}, 'prediction-random': {'mae': 0.4017728823839466, 'nrmse': 0.47370763198282584}, 'real-random': {'mae': 0.39857917144201765, 'nrmse': 0.5716654435811355}}</p>
+<p>The read file follows the same requirements as the file above and can be found <a href="https://raw.githubusercontent.com/arsandov/PyMissingData/master/examples/example2/Training_Features.txt">here</a> <br> <code> import bayesian_learner import compare_tools filename_input=&quot;Training_Features.txt&quot; filename_removed=&quot;tf_removed.txt&quot; filename_output=&quot;tf_filled.txt&quot; compare_tools.random_delete(filename_input,filename_removed) #This delete data randomly form the original source bf= bayesian_learner.bayesian_fill(min_iterations=3,max_iterations=80,pvalparam=0.3) bf.fill_missing_data(filename_removed,filename_output) bf.json_network() #prints the network in json format compare_tools.compare_predictions(filename_removed,filename_input,filename_output) #Calculates the MAE and NRMSE </code> <br><b>Output:</b><br> <code> Iteration: 0 Iteration: 1 Iteration: 2 Iteration: 3 Iteration: 4 Better bayesian network found ... ... Iteration: 37 Better bayesian network found Iteration: 38 ... Iteration: 52 There is a cycle, the new pval is 0.335 There is a cycle, the new pval is 0.37 ... Prints the network in Json ... Comparison of results {'real-prediction': {'mae': 0.05022275484304244, 'nrmse': 0.09962577574706931}, 'prediction-random': {'mae': 0.4017728823839466, 'nrmse': 0.47370763198282584}, 'real-random': {'mae': 0.39857917144201765, 'nrmse': 0.5716654435811355}}</p>
 Process finished with exit code 0 </code> <br> <b>Parameters (compare_predictions()):</b>
 <ul>
 <li>
@@ -5401,12 +5330,12 @@ times: While running the comparision it check 'times' times against a random pre
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <ol class="resultsListing notBold">
-<pre><code>                  &lt;li&gt; 
-                    &lt;a href=&quot;/0004-637X/777/2/83&quot;&gt;Automatic Classification of Variable Stars in Catalogs with Missing Data&lt;/a&gt; - Karim Pichara and Pavlos Protopapas 2013 &lt;em&gt;ApJ&lt;/em&gt; &lt;b&gt;777&lt;/b&gt; 83
-                  &lt;/li&gt;
-                
-            &lt;/ol&gt;</code></pre>
-</div>
+		            
+<li> 
+<a href="/0004-637X/777/2/83">Automatic Classification of Variable Stars in Catalogs with Missing Data</a> - Karim Pichara and Pavlos Protopapas 2013 <em>ApJ</em> <b>777</b> 83
+</li>
+
+</ol>
 </div>
 </div>
     </div>
