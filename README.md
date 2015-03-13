@@ -16,8 +16,8 @@ pip install PyMissingData
 ```
 
 Also keep in mind that this library has the following dependencies:
-1. pandas
-1. numpy
-1. scipy
-1. libpgm (included because we use a modified version)
+- pandas
+- numpy
+- scipy
+- libpgm (included because we use a modified version)
 
