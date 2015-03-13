@@ -1,1 +1,2 @@
-__all__ = ['bayesian_learner','compare_tools']
+import bayesian_learner
+import compare_tools
