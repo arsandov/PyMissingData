@@ -5211,7 +5211,7 @@ All values should be normalize between 0 and 1
 To mark missing values use a negative number (for example -1)
 </li>
 </ul>
-<br> <strong>Code:</strong> <code> import PyMissingData bf= PyMissingData.bayesian_learner.bayesian_fill(min_iterations=8,max_iterations=80,pvalparam=0.05) bf.fill_missing_data(&quot;data_examples.txt&quot;,&quot;data_examples_filled.txt&quot;) </code>
+<br> <strong>Code:</strong><br> <code> import PyMissingData<br> bf= PyMissingData.bayesian_learner.bayesian_fill(min_iterations=8,max_iterations=80,pvalparam=0.05)<br> bf.fill_missing_data(&quot;data_examples.txt&quot;,&quot;data_examples_filled.txt&quot;) </code>
 <p>
 </p>
 <br> <b>Parameters (init):</b>
@@ -5289,7 +5289,17 @@ delim_whitespace: The character which separetes a value from another is a whites
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The read file follows the same requirements as the file above and can be found <a href="https://raw.githubusercontent.com/arsandov/PyMissingData/master/examples/example2/Training_Features.txt">here</a> <br> <code> import bayesian_learner import compare_tools filename_input=&quot;Training_Features.txt&quot; filename_removed=&quot;tf_removed.txt&quot; filename_output=&quot;tf_filled.txt&quot; compare_tools.random_delete(filename_input,filename_removed) #This delete data randomly form the original source bf= bayesian_learner.bayesian_fill(min_iterations=3,max_iterations=80,pvalparam=0.3) bf.fill_missing_data(filename_removed,filename_output) bf.json_network() #prints the network in json format compare_tools.compare_predictions(filename_removed,filename_input,filename_output) #Calculates the MAE and NRMSE </code> <br><b>Output:</b><br> <code> Iteration: 0 Iteration: 1 Iteration: 2 Iteration: 3 Iteration: 4 Better bayesian network found ... ... Iteration: 37 Better bayesian network found Iteration: 38 ... Iteration: 52 There is a cycle, the new pval is 0.335 There is a cycle, the new pval is 0.37 ... Prints the network in Json ... Comparison of results {'real-prediction': {'mae': 0.05022275484304244, 'nrmse': 0.09962577574706931}, 'prediction-random': {'mae': 0.4017728823839466, 'nrmse': 0.47370763198282584}, 'real-random': {'mae': 0.39857917144201765, 'nrmse': 0.5716654435811355}}</p>
+<p>The read file follows the same requirements as the file above and can be found <a href="https://raw.githubusercontent.com/arsandov/PyMissingData/master/examples/example2/Training_Features.txt">here</a> <br> <code> 
+import PyMissingData as pmd<br>
+filename_input="Training_Features.txt"<br>
+filename_removed="tf_removed.txt"<br>
+filename_output="tf_filled.txt"<br>
+pmd.compare_tools.random_delete(filename_input,filename_removed)<br>
+bf= pmd.bayesian_learner.bayesian_fill(min_iterations=3,max_iterations=80,pvalparam=0.3)<br>
+bf.fill_missing_data(filename_removed,filename_output)<br>
+bf.json_network()<br>
+pmd.compare_tools.compare_predictions(filename_removed,filename_input,filename_output)
+</code> <br><b>Output:</b><br> <code>Iteration: 0<br>Iteration: 1<br> ...<br>Iteration: 4 Better bayesian network found<br> ...<br>Iteration: 37 Better bayesian network found <br>Iteration: 38 <br>...<br>Iteration: 52<br>There is a cycle, the new pval is 0.335<br>There is a cycle, the new pval is 0.37 <br>... <br>Prints the network in Json<br> ... <br>Comparison of results {'real-prediction': {'mae': 0.05022275484304244, 'nrmse': 0.09962577574706931}, 'prediction-random': {'mae': 0.4017728823839466, 'nrmse': 0.47370763198282584}, 'real-random': {'mae': 0.39857917144201765, 'nrmse': 0.5716654435811355}}</p>
 Process finished with exit code 0 </code> <br> <b>Parameters (compare_predictions()):</b>
 <ul>
 <li>
