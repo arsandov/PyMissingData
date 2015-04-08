@@ -36,7 +36,6 @@ except ImportError:
     raise ImportError, "os is not installed on your system."
 
 
-
 #===================================================
 # run bayesian_fill in parallel
 def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
@@ -47,7 +46,7 @@ def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
     array_iter = list(itertools.product(range(num_trials), [filename_in], [temp_folder],\
                                             [pvalparam], [nbins], [indegree]))
 
-    # initiate parallel pool
+    # initialize parallel pool
     pool = Pool(num_threads)
     pool.map(multi_run_wrapper, array_iter)
     
@@ -81,7 +80,7 @@ def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
 # parallel wrapper
 def multi_run_wrapper(array_iter_args):
     
-    # initiate machine
+    # initialize machine
     bf = bayesian_fill(pvalparam=array_iter_args[3], nbins=array_iter_args[4],\
                            indegree=array_iter_args[5], verbose=False)
     bf.fill_missing_data(array_iter_args[1], num_trials=1)
@@ -95,7 +94,7 @@ def multi_run_wrapper(array_iter_args):
 # define class
 class bayesian_fill:
     
-    # initiate class
+    # initialize class
     def __init__(self,\
                      pvalparam=0.05, nbins=10, indegree=0,\
                      missing_threshold=-90,\
@@ -122,7 +121,7 @@ class bayesian_fill:
         # restore catalog
         self.data_original = np.loadtxt(filename_in, delimiter=delimiter)
     
-        # initiate global best result
+        # initialize global best result
         self.best_log_likelihood = -float('Inf')
         
 #----------------------------------------------------------------------------------------------------------------
@@ -171,7 +170,7 @@ class bayesian_fill:
         data = data[:,k_order]
 
 #--------------------------------------------------------------------------------------------------------------
-        # initiate the EM algorithm
+        # initialize the EM algorithm
         ll_best = -float('Inf')
         num_iter = 0
         converge = False
@@ -279,7 +278,7 @@ class bayesian_fill:
     # calculate total log likelihood
     def calculate_total_log_likelihood(self, lgbn_choice, data_dict):
     
-        # initiate total log likelihood
+        # initialize total log likelihood
         ll_total = 0
     
         # loop over the data set
@@ -294,7 +293,7 @@ class bayesian_fill:
     # calculate the log likelihood of one data point
     def calculate_log_likelihood(self, lgbn_choice, dict_choice):
     
-        # initiate log likelihood
+        # initialize log likelihood
         ll_point = 0
     
         # loop over all evidences
@@ -315,7 +314,7 @@ class bayesian_fill:
     # calculate mean and variance of CPD, given evidences
     def calculate_mean_var(self, node_choice, lgbn_choice, dict_choice):
 
-        # initiate mean and variance
+        # initialize mean and variance
         total_mean = copy.copy(lgbn_choice.Vdata[node_choice]['mean_base'])
         total_var = copy.copy(lgbn_choice.Vdata[node_choice]['variance'])
 
