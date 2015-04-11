@@ -16,6 +16,7 @@ except ImportError:
 
 try: 
     from libpgm.pgmlearner import PGMLearner
+    from libpgm.graphskeleton import GraphSkeleton
 except ImportError:
     raise ImportError, "libpgm is not installed on your system."
 
@@ -37,14 +38,21 @@ except ImportError:
 
 
 #===================================================
-# run bayesian_fill in parallel
-def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
-                                   num_trials=20, temp_folder=".",\
-                                   pvalparam=0.05, nbins=10, indegree=0):
+# run in parallel
+def fill_missing_data(filename_in, filename_out, temp_folder=".",\
+                          num_threads=4, num_resets=10, num_graphs=10,\
+                          pvalparam=0.05, nbins=10, indegree=1,\
+                          delimiter=" ", float_format='%.5f',\
+                          missing_threshold=-90,\
+                          max_EM_iter=10, EM_tol=10**-4):
     
-    # input arguments for the parallel workers
-    array_iter = list(itertools.product(range(num_trials), [filename_in], [temp_folder],\
-                                            [pvalparam], [nbins], [indegree]))
+    # input arguments for parallel workers
+    array_iter = list(itertools.product(range(num_resets),\
+                                            [filename_in], [temp_folder],\
+                                            [pvalparam], [nbins], [indegree],\
+                                            [num_graphs],\
+                                            [delimiter], [missing_threshold],\
+                                            [max_EM_iter], [EM_tol]))
 
     # initialize parallel pool
     pool = Pool(num_threads)
@@ -52,28 +60,28 @@ def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
     
 #----------------------------------------------------------------------------------------------------------------
     # find the global best result
-    best_log_likelihood = -float('Inf')
-
     # loop over all the parallel batches
-    for t1 in range(num_trials):
+    for t1 in range(num_resets):
     
         # restore result of each batch
         temp = np.load(temp_folder + "/temp_results_" + str(t1) + ".npz")
     
         # check if it is better
-        if temp["best_log_likelihood"] > best_log_likelihood:
+        if not ('best_log_likelihood' in locals()) \
+                or temp["best_log_likelihood"] > best_log_likelihood:
             best_log_likelihood = temp["best_log_likelihood"]
             filled_data = temp["filled_data"]
+            best_BN_Vdata = temp["best_BN_Vdata"]
 
 #---------------------------------------------------------------------------------------------------------------
     # remove temporary files
     os.system("rm -rf " + temp_folder + "/temp_results_*")
 
     # print the global best result into a text file
-    np.savetxt(filename_out, filled_data, fmt='%.5f', delimiter=" ")
+    np.savetxt(filename_out, filled_data, delimiter=delimiter, fmt=float_format)
 
     # return results
-    return filled_data, best_log_likelihood
+    return filled_data, best_log_likelihood, best_BN_Vdata
 
 
 #===================================================
@@ -81,13 +89,20 @@ def fill_missing_data_parallel(filename_in, filename_out, num_threads=4, \
 def multi_run_wrapper(array_iter_args):
     
     # initialize machine
-    bf = bayesian_fill(pvalparam=array_iter_args[3], nbins=array_iter_args[4],\
-                           indegree=array_iter_args[5], verbose=False)
-    bf.fill_missing_data(array_iter_args[1], num_trials=1)
+    bf = bayesian_fill(array_iter_args[1],\
+                           pvalparam=array_iter_args[3],\
+                           nbins=array_iter_args[4],\
+                           indegree=array_iter_args[5],\
+                           delimiter=array_iter_args[7],\
+                           missing_threshold=array_iter_args[8],\
+                           max_EM_iter=array_iter_args[9],\
+                           EM_tol=array_iter_args[10])
+    bf.bayesian_fill_run(array_iter_args[6])
     
     # save the best result of this batch
     np.savez(array_iter_args[2] + "/temp_results_" + str(array_iter_args[0]) + ".npz",\
-             best_log_likelihood = bf.best_log_likelihood, filled_data = bf.filled_data)
+                 best_log_likelihood = bf.best_log_likelihood, filled_data = bf.filled_data,\
+                 best_BN_Vdata=bf.best_BN_Vdata)
 
 
 #====================================================
@@ -95,115 +110,61 @@ def multi_run_wrapper(array_iter_args):
 class bayesian_fill:
     
     # initialize class
-    def __init__(self,\
-                     pvalparam=0.05, nbins=10, indegree=0,\
+    def __init__(self, filename_data,\
+                     pvalparam=0.05, nbins=10, indegree=1,\
+                     delimiter=" ",\
                      missing_threshold=-90,\
-                     max_iter=20, EM_tol=10**-4,\
-                     verbose=True):
-                
+                     max_EM_iter=10, EM_tol=10**-4):
+
+        self.data_original = np.loadtxt(filename_data, delimiter=delimiter)
+        self.filled_data = None
+        self.best_BN_Vdata = None
+
+        self.rows = self.data_original.shape[0]
+        self.cols = self.data_original.shape[1]
+        self.best_log_likelihood = -float('Inf')
+
         self.pvalparam = pvalparam
         self.nbins = nbins
         self.indegree = indegree
-        
+
         self.missing_threshold = missing_threshold
         
-        self.max_iter = max_iter
+        self.max_EM_iter = max_EM_iter
         self.EM_tol = EM_tol
-
-        self.verbose = verbose
 
 
 #====================================================
     # filling up missing data
-    def fill_missing_data(self, filename_in, filename_out=None, num_trials=20,\
-                              delimiter=" ", float_format='%.5f'):
-        
-        # restore catalog
-        self.data_original = np.loadtxt(filename_in, delimiter=delimiter)
-    
-        # initialize global best result
-        self.best_log_likelihood = -float('Inf')
-        
-#----------------------------------------------------------------------------------------------------------------
-        # run different initializations
-        for p1 in range(num_trials):
+    def bayesian_fill_run(self, num_graphs):
 
-            # print number of the current trial
-            if self.verbose:
-                print "Number of trial : ", p1+1
-
-            # reshuffling the nodes
-            order_array = np.arange(len(self.data_original[0,:]))
-            np.random.shuffle(order_array)
-
-            # run linear Gaussian + EM
-            [filled_data_trial, best_log_likelihood_trial] = self.lg_estimatebn_EM(order_array)
-
-#---------------------------------------------------------------------------------------------------------------
-            # check if this trial is better
-            if best_log_likelihood_trial > self.best_log_likelihood:
-                self.best_log_likelihood = best_log_likelihood_trial
-                self.filled_data = filled_data_trial
-                
-            # print an empty line
-            if self.verbose:
-                print "\n"
-
-#---------------------------------------------------------------------------------------------------------------
-        # save the final result to a text file
-        if filename_out:
-            np.savetxt(filename_out, self.filled_data, fmt=float_format, delimiter=delimiter)
-
- 
-#====================================================
-    # linear Gaussian with EM algorithm
-    def lg_estimatebn_EM(self, k_order):
-
-        # the catalog
-        data = np.copy(self.data_original)
-        
-        # number of data points and features
-        rows = data.shape[0]
-        cols = data.shape[1]
-
-        # shuffle the features ordering
-        data = data[:,k_order]
-
-#--------------------------------------------------------------------------------------------------------------
-        # initialize the EM algorithm
-        ll_best = -float('Inf')
-        num_iter = 0
-        converge = False
-
+        # initialize missing data
         original_data = []
         estimated_data = []
         missing_index = []
 
-#-------------------------------------------------------------------------------------------------------------
-        # make dictionary sets for EM
-        for r in range(rows):
-
-            # for each data point
+        # for each data point
+        for r in range(self.rows):
             dict_run = {}
             dict_original = {}
             missing_checker = False
     
 #-------------------------------------------------------------------------------------------------------------
             # loop over all features
-            for c in range(cols):
-                if data[r,c] > self.missing_threshold:
-                    dict_run[c] = data[r,c]
-                    dict_original[c] = data[r,c]
+            for c in range(self.cols):
+                if self.data_original[r,c] > self.missing_threshold:
+                    dict_run[c] = self.data_original[r,c]
+                    dict_original[c] = self.data_original[r,c]
 
                 # input missing data from the marginal distribution
                 else:
                     dict_run[c] = []
             
                     while not dict_run[c]:
-                        ind_draw = np.random.randint(0,rows)
+                        ind_draw = np.random.randint(0,self.rows)
                 
-                        if data[ind_draw,c] > self.missing_threshold:
-                            dict_run[c] = data[ind_draw,c]
+                        if self.data_original[ind_draw,c] > self.missing_threshold:
+                            dict_run[c] = self.data_original[ind_draw,c]
 
 #-------------------------------------------------------------------------------------------------------------
                     # remember which data point has missing data
@@ -216,62 +177,101 @@ class bayesian_fill:
             # append data point dictionary into dictionary sets
             estimated_data.append(dict_run)
             original_data.append(dict_original)
-    
+
+#-----------------------------------------------------------------------------------------------------------
+        # learn the structure
+        learner = PGMLearner()
+        skel = learner.lg_constraint_estimatestruct(estimated_data,\
+                                                        pvalparam=self.pvalparam,\
+                                                        bins=self.nbins, indegree=self.indegree)
+
+        # the number of possible Bayesian Networks for this structure
+        n2 = 2**len([x for x in skel.E_undirected if len(x) == 3])
+
+#-------------------------------------------------------------------------------------------------------------
+        # run different possible Bayesian Networks
+        for p1 in range(num_graphs):
+
+            # initiate non-cyclic indicator
+            ind_non_cyclic = False
+
+            # find a particular non-cyclic Bayesian Network
+            while (not ind_non_cyclic):
+                x = np.random.randint(0,n2)
+                
+                # instantiate a graph
+                lg_skeleton = GraphSkeleton()
+                lg_skeleton.V = skel.V[:]
+                new_edges = []
+
+                # randomly choose the edges directions
+                for e in skel.E_undirected:
+                    if len(e) == 2: 
+                        new_edges.append(e)
+                        continue
+                    new_edge = e[:2]
+                    if x%2 == 0:
+                        new_edge.reverse()
+                    new_edges.append(new_edge)
+                    x = x >> 1
+                lg_skeleton.E = new_edges
+
+                # check if the graph is acyclic:
+                try:
+                    lg_skeleton.toporder()
+                    ind_non_cyclic= True
+                except:
+                    continue
+      
 #------------------------------------------------------------------------------------------------------------
-        ## EM algorithm ##
-        while not converge and num_iter < self.max_iter:
-    
-            # increase the counter
-            num_iter += 1
+            # given the Bayesian Network, initialize the EM algorithm
+            ll_best = -float('Inf')
+            num_iter = 0
+            converge = False
+     
+            ## EM algorithm ##
+            while not converge and num_iter < self.max_EM_iter:
+
+                # increase the counter
+                num_iter += 1
         
-            ## the maximization step ##
-            # find the best fitting model
-            learner = PGMLearner()
-            lgbn = learner.lg_estimatebn(estimated_data, \
-                                             pvalparam=self.pvalparam,\
-                                             bins=self.nbins, indegree=self.indegree)
+#------------------------------------------------------------------------------------------------------------
+                ## maximization step ##
+                # find the best fitting model
+                lgbn = learner.lg_mle_estimateparams(lg_skeleton, estimated_data)
 
-#-------------------------------------------------------------------------------------------------------------
-            # calculate the total log likelihood
-            ll_new = self.calculate_total_log_likelihood(lgbn, original_data)
+                # calculate total log likelihood
+                ll_new = self.calculate_total_log_likelihood(lgbn, original_data)
 
-            # due to missing data, the final few EM steps could oscillate
-            # we do not consider the oscillations
-            if ll_new > ll_best:
-                ll_best_new = ll_new
-            else:
-                ll_best_new = ll_best
+                # due to missing data, the final few EM steps could oscillate
+                # we do not consider oscillations
+                if ll_new > ll_best:
+                    ll_best_new = ll_new
+                else:
+                    ll_best_new = ll_best
 
-#-------------------------------------------------------------------------------------------------------------  
-            # check convergence
-            if np.abs((ll_best_new - ll_best)/ll_best_new) < self.EM_tol:
-                converge = True
+                # check convergence
+                if np.abs((ll_best_new - ll_best)/ll_best_new) < self.EM_tol:
+                    converge = True
 
-            # update the likelihood
-            ll_best = ll_best_new
-        
-            # print current EM result
-            if self.verbose:
-                print 'EM iteration ', num_iter, ', log likelihood = ', ll_best
+                # update likelihood
+                ll_best = ll_best_new
         
 #-------------------------------------------------------------------------------------------------------------
-            ## the expectation step ##
-            # estimate the missing data
-            for ind_missing in missing_index:
-    
-                dict_run = copy.copy(original_data[ind_missing])
-                dict_run = lgbn.randomsample(1,dict_run)[0]
-            
-                estimated_data[ind_missing] = dict_run
+                ## expectation step ##
+                # estimate missing data
+                for ind_missing in missing_index:
+                    dict_run = copy.copy(original_data[ind_missing])
+                    dict_run = lgbn.randomsample(1,dict_run)[0]
+                    estimated_data[ind_missing] = dict_run
 
 #-------------------------------------------------------------------------------------------------------------
-        # restore the original features ordering
-        k_order_argsort = np.argsort(k_order)
-        filled_data = np.array([[estimated_data[i][k_order_argsort[j]]\
-                                     for j in range(cols)] for i in range(rows)])
-    
-        # return results
-        return filled_data, ll_best
+            # check if the current Bayesian Network is better
+            if ll_best > self.best_log_likelihood:
+                self.best_log_likelihood = ll_best
+                self.filled_data = np.array([[estimated_data[i][j]\
+                                                  for j in range(self.cols)] for i in range(self.rows)])
+                self.best_BN_Vdata = copy.copy(lgbn.Vdata)
 
 
 #===================================================
@@ -299,12 +299,15 @@ class bayesian_fill:
         # loop over all evidences
         for o1 in dict_choice.keys():
             
-            # evaluate the CPD
+            # evaluate CPD
             total_mean, total_var = self.calculate_mean_var(o1, lgbn_choice, dict_choice)
 
-            # evaluate the likelihood
-            ll_point += np.log(norm.pdf(dict_choice[o1], \
-                                        scale=np.sqrt(total_var), loc=total_mean))
+            # evaluate likelihood
+            ll_temp = norm.pdf(dict_choice[o1], scale=np.sqrt(total_var), loc=total_mean)
+            if ll_temp > 0:
+                ll_point += np.log(ll_temp)
+            else:
+                ll_point += -float('Inf')
 
         # return log likelihood
         return ll_point
@@ -342,5 +345,5 @@ class bayesian_fill:
                 total_var += (beta_scale_pop**2)*temp_results[1]
             
 #----------------------------------------------------------------------------------------------------------------
-        # return results
+        # return CPD properties
         return total_mean, total_var
