@@ -16,3 +16,8 @@ Also keep in mind that this library has the following dependencies:
 - numpy
 - scipy
 
+Documentation
+-------------
+
+All the documentation is available in the following webpage
+http://arsandov.github.io/PyMissingData/
