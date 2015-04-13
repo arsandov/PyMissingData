@@ -5358,10 +5358,10 @@ times: While running the comparision it check 'times' times against a random pre
 
 <div id="openModal" class="modalDialog">
 	<div>
-		<a href="#close" title="Close" class="close">X</a>
-		<h2>Modal Box</h2>
-		<p>This is a sample modal box that can be created using the powers of CSS3.</p>
-		<p>You could do a lot of things here like have a pop-up ad that shows when your website loads, or create a login/register form for users.</p>
+		<h2>Library Maintenance</h2>
+		<h4>Dear Visitor</h4>
+		<p>After performing some tests we found some bugs in the library, we are working to solve them as soon as possible. After that, we will update the webpage with the new functions!</p> 
+		<p>Please remember that the library is still in alpha state. If you want to contact us, feel free to send us an email to augustocsandoval[(at)]gmail.com</p>
 	</div>
 </div>
 
@@ -5375,17 +5375,19 @@ times: While running the comparision it check 'times' times against a random pre
 	left: 0;
 	background: rgba(0,0,0,0.8);
 	z-index: 99999;
-	opacity:0;
 	-webkit-transition: opacity 400ms ease-in;
 	-moz-transition: opacity 400ms ease-in;
 	transition: opacity 400ms ease-in;
-	pointer-events: none;
-}
-.modalDialog:target {
-	opacity:1;
+opacity:1;
 	pointer-events: auto;
 }
-
+.modalDialog h2{
+text-align: center;
+color: darkred;
+}
+.modalDialog p{
+	text-align: justify;
+}
 .modalDialog > div {
 	width: 400px;
 	position: relative;
@@ -5393,10 +5395,8 @@ times: While running the comparision it check 'times' times against a random pre
 	padding: 5px 20px 13px 20px;
 	border-radius: 10px;
 	background: #fff;
-	background: -moz-linear-gradient(#fff, #999);
-	background: -webkit-linear-gradient(#fff, #999);
-	background: -o-linear-gradient(#fff, #999);
 }
+
 </style>
 <!--   MODAL END -->
 </body>
